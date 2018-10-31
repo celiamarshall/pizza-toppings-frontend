@@ -9,64 +9,85 @@ const renderToppings = (toppings) => {
 
   // create array of list items
   const appliedTemplateArray = toppings.map(topping =>
-    topping.id === currentEditing 
+    topping.id === currentEditing
       ? toppingEditingTemplate(topping)
       : toppingTemplate(topping)
   )
-  
+
   // clean out DOM
   location.innerHTML = ''
-  
+
   // add list items to DOM
   location.innerHTML = appliedTemplateArray.join('\n')
 
   // add event listeners for new elements in the DOM
 
   // delete list item
-  addEventListenerAll('.delete', 'click', function(event){
+  addEventListenerAll('.delete', 'click', function (event) {
     const id = event.target.parentElement.getAttribute('data-id')
     deleteTopping(id)
-
-    const toppings = getToppings()
-    renderToppings(toppings)
+      .then(function (response) {
+        return getToppings()
+      })
+      .then(function (response) {
+        renderToppings(response.data.toppings)
+      })
+      .catch(function(error){
+        alert(error.response.statusText)
+      })
+      .finally(function() {
+        getToppings()
+        .then(function(response){
+          renderToppings(response.data.toppings)
+        })
+      })
   })
 
   // show update form
-  addEventListenerAll('.update', 'click', function(event){
+  addEventListenerAll('.update', 'click', function (event) {
     const id = event.target.parentElement.getAttribute('data-id')
     setEditing(id)
 
-    const toppings = getToppings()
-    renderToppings(toppings)
+    getToppings()
+    .then(function(response) {
+      renderToppings(response.data.toppings)
+    })
   })
 
   // hide update form
-  addEventListenerAll('.cancel', 'click', function(event){
+  addEventListenerAll('.cancel', 'click', function (event) {
     resetEditing()
 
-    const toppings = getToppings()
-    renderToppings(toppings)
+    getToppings()
+    .then(function(response) {
+      renderToppings(response.data.toppings)
+    })
   })
 
   // update data
-  addEventListenerAll('li > form', 'submit', function(event){
+  addEventListenerAll('li > form', 'submit', function (event) {
     event.preventDefault()
-    
+
     const id = event.target.parentElement.getAttribute('data-id')
     const name = event.target.toppingName.value
     const deliciousness = parseInt(event.target.deliciousness.value)
-        
+
     updateTopping(id, name, deliciousness)
-    
+    .then(function(response) {
+      return getToppings()
+    })
+    .then(function(response) {
+      renderToppings(response.data.toppings)
+    })
+    .catch(function(error) {
+      alert(error.response.statusText)
+    })
+
     resetEditing()
-
-    const toppings = getToppings()
-    renderToppings(toppings)
   })
-
 }
 
-const toppingTemplate = ({ id, name, deliciousness }) => 
+const toppingTemplate = ({ id, name, deliciousness }) =>
   `<li data-id="${id}">
     <button class="delete">Delete</button>
     <button class="update">Update</button>
@@ -85,7 +106,7 @@ const toppingEditingTemplate = ({ id, name, deliciousness }) =>
 
 
 const getDeliciousnessDescriptor = numb => {
-  switch(numb){
+  switch (numb) {
     case 0:
     case 1:
     case 2:
@@ -101,8 +122,8 @@ const getDeliciousnessDescriptor = numb => {
     case 9:
     case 10:
       return 'Heavenly'
-    default: 
-      return 'I don\'t know what you are talking about' 
+    default:
+      return 'I don\'t know what you are talking about'
   }
 }
 

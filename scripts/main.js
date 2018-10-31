@@ -13,15 +13,21 @@ document.querySelector('form').addEventListener('submit', function(event){
   event.target.toppingName.value = ''
   event.target.deliciousness.value = ''
   
+
   // add toppings
   addTopping(name, deliciousness)
-
-  const toppings = getToppings()
-  renderToppings(toppings)
-
+  .then(function(response) {
+    return getToppings()
+  })
+  .then(function(response) {
+    renderToppings(response.data.toppings)
+  })
 })
 
 
 // initial render of data
-const toppings = getToppings()
-renderToppings(toppings)
+getToppings()
+.then(function(response) {
+  renderToppings(response.data.toppings)
+})
+  
